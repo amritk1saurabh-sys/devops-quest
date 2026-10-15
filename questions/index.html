@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="hi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DevOps Quest</title>
+<style>
+:root{--bg:#e6eaee;--card:#fff;--ink:#14202b;--mut:#5b6b79;--acc:#f2b705;--ok:#1f9d55;--bad:#d64545;--line:#c9d1d9;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root{--bg:#10181f;--card:#1a2631;--ink:#e8eef3;--mut:#93a4b3;--line:#2c3b49;--ok:#3ecf7a;--bad:#ff6b6b}}
+*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Trebuchet MS","Segoe UI",system-ui,sans-serif}
+#app{max-width:520px;margin:0 auto;padding:16px}
+h1{font:800 26px/1.1 Georgia,"Times New Roman",serif;margin:0}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.pill{background:var(--card);border:2px solid var(--line);border-radius:20px;padding:4px 12px;font-weight:700}
+.stage{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;color:var(--ink);font:inherit;cursor:pointer}
+.stage[disabled]{opacity:.45;cursor:not-allowed}
+.stage .ic{font-size:26px;width:44px;height:44px;display:grid;place-items:center;background:var(--bg);border-radius:50%;flex:none}
+.stage b{display:block}.stage small{color:var(--mut)}
+.stage.done{border-color:var(--ok)}
+.bar{height:10px;background:var(--line);border-radius:6px;overflow:hidden;margin:8px 0 18px}
+.bar i{display:block;height:100%;background:var(--acc);width:0;transition:width .3s}
+.q{font-size:19px;font-weight:700;margin-bottom:14px;white-space:pre-wrap}
+.opt{display:block;width:100%;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:13px;margin-bottom:9px;color:var(--ink);font:inherit;cursor:pointer}
+.opt:focus-visible,.btn:focus-visible,.stage:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,var(--card))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 15%,var(--card))}
+.exp{background:var(--card);border-left:5px solid var(--acc);border-radius:8px;padding:12px;margin:12px 0}
+.btn{display:block;width:100%;background:var(--acc);color:#14202b;border:0;border-radius:12px;padding:14px;font:800 17px inherit;font-family:inherit;cursor:pointer}
+.btn.alt{background:var(--card);color:var(--ink);border:2px solid var(--line);margin-top:10px}
+.tag{display:inline-block;background:var(--bad);color:#fff;border-radius:6px;padding:0 8px;font-size:13px;margin-bottom:8px}
+.big{font:800 48px/1 Georgia,serif;text-align:center;margin:24px 0 6px}
+.c{text-align:center;color:var(--mut)}
+a.x{color:var(--mut);cursor:pointer;text-decoration:underline;font-size:14px}
+</style></head><body><div id="app"></div>
+
+<!-- Sawal files: har topic ki alag file. Nayi file banao to yahan ek line add karo. -->
+<script>window.QUESTIONS=[];</script>
+<script src="questions/terraform.js"></script>
+<script src="questions/github.js"></script>
+<script src="questions/cicd.js"></script>
+<script src="questions/monolith-lz.js"></script>
+<script src="questions/microservices-lz.js"></script>
+<script src="questions/agentic-ai-lz.js"></script>
+<script src="questions/data-lz.js"></script>
+<script src="questions/ml-lz.js"></script>
+
+<script>
+// Topic list: k = sawalon me "topic" field se match hona chahiye
+const TOPICS=[
+{k:"terraform",n:"Terraform",e:"🏗️"},{k:"github",n:"GitHub",e:"🐙"},{k:"cicd",n:"CI/CD Pipelines",e:"🔁"},
+{k:"monolith-lz",n:"Monolithic Landing Zone",e:"🏢"},{k:"microservices-lz",n:"Microservices Landing Zone",e:"🧩"},
+{k:"agentic-ai-lz",n:"Agentic AI Infra Landing Zone",e:"🤖"},{k:"data-lz",n:"Data Infra Landing Zone",e:"🗄️"},{k:"ml-lz",n:"ML Infra Landing Zone",e:"🧠"}];
+const PASS=0.7,PER=10,LV={easy:0,medium:1,hard:2};
+const QS=window.QUESTIONS||[],BY={};QS.forEach(q=>BY[q.id]=q);
+const stagesOf=k=>{ // easy -> hard sort, phir 10-10 ke stage
+ const a=QS.filter(q=>q.topic==k).sort((x,y)=>(LV[x.level]||0)-(LV[y.level]||0));
+ const s=[];for(let i=0;i<a.length;i+=PER)s.push(a.slice(i,i+PER));return s};
+const K="devopsquest2";let S;
+try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+S=S||{pts:0,done:{},weak:[],streak:0};
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id),app=$("app");
+const sh=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const need=n=>Math.ceil(n*PASS);
+let G;
+
+function home(){
+ app.innerHTML=`<div class="top"><h1>DevOps Quest</h1><span class="pill">⭐ ${S.pts}</span></div>`+
+ TOPICS.map((t,i)=>{const st=stagesOf(t.k),p=st.filter((s,j)=>S.done[t.k+":"+j]>=need(s.length)).length;
+  return `<button class="stage" ${st.length?'':'disabled'} data-i="${i}"><span class="ic">${st.length?t.e:'🔒'}</span><span><b>${t.n}</b><small>${st.length?p+'/'+st.length+' stages pass · '+QS.filter(q=>q.topic==t.k).length+' sawal':'Jald aa raha hai'}</small></span></button>`}).join("")+
+ `<p class="c">Weak list: ${S.weak.length} sawal${S.weak.length?' (revision me aayenge)':''}</p><p class="c"><a class="x" id="rs">Progress reset</a></p>`;
+ app.querySelectorAll(".stage:not([disabled])").forEach(b=>b.onclick=()=>topic(+b.dataset.i));
+ $("rs").onclick=()=>{if(confirm("Saara progress delete karein?")){S={pts:0,done:{},weak:[],streak:0};save();home()}};
+}
+function topic(i){
+ const t=TOPICS[i],st=stagesOf(t.k);
+ const ok=j=>j==0||S.done[t.k+":"+(j-1)]>=need(st[j-1].length);
+ app.innerHTML=`<div class="top"><a class="x" id="hb">← Home</a><span class="pill">⭐ ${S.pts}</span></div><h1 style="margin-bottom:14px">${t.e} ${t.n}</h1>`+
+ st.map((s,j)=>{const d=S.done[t.k+":"+j],p=d>=need(s.length);
+  return `<button class="stage ${p?'done':''}" ${ok(j)?'':'disabled'} data-j="${j}"><span class="ic">${ok(j)?(p?'✅':'▶️'):'🔒'}</span><span><b>Stage ${j+1}</b><small>${s.length} sawal · ${d!==undefined?'Best '+d+'/'+s.length:'naya'}</small></span></button>`}).join("");
+ $("hb").onclick=home;
+ app.querySelectorAll(".stage:not([disabled])").forEach(b=>b.onclick=()=>start(i,+b.dataset.j));
+}
+function start(ti,j){
+ const t=TOPICS[ti],base=stagesOf(t.k)[j],ids=new Set(base.map(q=>q.id));
+ const wk=sh(S.weak.filter(id=>BY[id]&&!ids.has(id))).slice(0,3).map(id=>({q:BY[id],weak:true,tries:0}));
+ const main=sh(base).map(q=>({q,first:true,tries:0}));
+ G={ti,j,queue:[...wk,...main],total:wk.length+main.length,n:base.length,ok:0,done:0};ask();
+}
+function ask(){
+ if(!G.queue.length)return end();
+ const c=G.queue[0],q=c.q,opts=sh(q.options.map((t,k)=>({t,r:k==q.answer})));
+ app.innerHTML=`<div class="top"><a class="x" id="qt">✕ Exit</a><span class="pill">⭐ ${S.pts} · 🔥 ${S.streak}</span></div><div class="bar"><i style="width:${G.done/G.total*100}%"></i></div>${c.weak?'<span class="tag">Revision: pehle galat hua tha</span>':c.tries?'<span class="tag">Dobara try karo</span>':''}<div class="q"></div><div id="os"></div><div id="fb"></div>`;
+ app.querySelector(".q").textContent=q.q; // textContent: code snippets safe dikhte hain
+ opts.forEach((x,k)=>{const b=document.createElement("button");b.className="opt";b.textContent=x.t;b.onclick=()=>pick(b,opts,c);$("os").appendChild(b)});
+ $("qt").onclick=()=>{if(confirm("Stage beech me chhod rahe ho?"))topic(G.ti)};
+}
+function pick(b,opts,c){
+ const x=opts[[...b.parentNode.children].indexOf(b)],e=c.q.explain;
+ [...b.parentNode.children].forEach((n,k)=>{n.disabled=true;if(opts[k].r)n.classList.add("ok")});
+ const fb=$("fb");
+ if(x.r){S.streak++;const p=10+(S.streak>2?Math.min(S.streak-2,5)*2:0);S.pts+=p;
+  if(c.first)G.ok++;S.weak=S.weak.filter(id=>id!=c.q.id);G.queue.shift();G.done++;
+  fb.innerHTML=`<div class="exp"><b>✅ Sahi! +${p} points</b><br><span id="ex"></span></div><button class="btn" id="nx">Aage</button>`;
+ }else{b.classList.add("bad");S.streak=0;
+  if(!S.weak.includes(c.q.id))S.weak.push(c.q.id);
+  G.queue.shift();c.first=false;c.tries++;if(c.tries<3)G.queue.splice(Math.min(3,G.queue.length),0,c);else G.done++;
+  fb.innerHTML=`<div class="exp"><b>❌ Galat. Ye sawal thodi der me wapas aayega.</b><br><span id="ex"></span></div><button class="btn" id="nx">Samajh gaya</button>`;
+ }
+ $("ex").textContent=e;save();$("nx").onclick=ask;$("nx").focus();
+}
+function end(){
+ const t=TOPICS[G.ti],key=t.k+":"+G.j,sc=G.ok,pass=sc>=need(G.n),bonus=sc==G.n?50:pass?20:0;S.pts+=bonus;
+ if(S.done[key]===undefined||sc>S.done[key])S.done[key]=sc;save();
+ const more=pass&&G.j<stagesOf(t.k).length-1;
+ app.innerHTML=`<div class="big">${sc}/${G.n}</div><p class="c">${pass?'Stage pass! 🎉 Bonus +'+bonus:'Pass ke liye '+need(G.n)+' sahi chahiye. Ek aur try?'}</p><p class="c">Total ⭐ ${S.pts}</p><button class="btn" id="a">${more?'Next stage':'Dobara khelo'}</button><button class="btn alt" id="h">Stages list</button>`;
+ $("a").onclick=()=>start(G.ti,more?G.j+1:G.j);$("h").onclick=()=>topic(G.ti);
+}
+home();
+</script></body></html>
